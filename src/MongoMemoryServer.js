@@ -15,6 +15,7 @@ export type MongoMemoryServerOptsT = {
     ip?: string, // for binding to all IP addresses set it to `::,0.0.0.0`, by default '127.0.0.1'
     dbPath?: string,
     dbName?: string,
+    replSet?: string,
     storageEngine?: string,
     debug?: boolean | Function,
   },
@@ -35,6 +36,7 @@ export type MongoInstanceDataT = {
   dbPath: string,
   dbName: string,
   uri: string,
+  replSet?: string,
   storageEngine: string,
   instance: MongoInstance,
   childProcess: ChildProcess,
@@ -115,6 +117,7 @@ export default class MongoMemoryServer {
     this.debug.enabled = !!this.opts.debug;
     data.dbName = await generateDbName(instOpts.dbName);
     data.uri = await generateConnectionString(data.port, data.dbName);
+    data.replSet = this.opts.instance.replSet;
     data.storageEngine = instOpts.storageEngine || 'ephemeralForTest';
     if (instOpts.dbPath) {
       data.dbPath = instOpts.dbPath;
@@ -127,9 +130,12 @@ export default class MongoMemoryServer {
 
     // Download if not exists mongo binaries in ~/.mongodb-prebuilt
     // After that startup MongoDB instance
+    console.log('this.opts', this.opts);
+    console.log('data', data);
     const instance = await MongoInstance.run({
       instance: {
         port: data.port,
+        replSet: data.replSet,
         storageEngine: data.storageEngine,
         dbPath: data.dbPath,
         debug: this.opts.instance.debug,

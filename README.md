@@ -51,6 +51,7 @@ const mongod = new MongodbMemoryServer({
     dbName?: string, // by default generate random dbName
     dbPath?: string, // by default create in temp directory
     storageEngine?: string, // by default `ephemeralForTest`
+    replSet?: string, // by default undefined
     debug?: boolean, // by default false
   },
   binary: {

@@ -11,6 +11,7 @@ export type MongodOps = {
   instance: {
     port: number,
     ip?: string, // for binding to all IP addresses set it to `::,0.0.0.0`, by default '127.0.0.1'
+    replSet?: string,
     storageEngine?: string,
     dbPath: string,
     debug?: boolean | Function,
@@ -75,13 +76,14 @@ export default class MongodbInstance {
   }
 
   prepareCommandArgs(): string[] {
-    const { ip, port, storageEngine, dbPath } = this.opts.instance;
+    const { ip, port, storageEngine, dbPath, replSet } = this.opts.instance;
 
     const result = [];
     result.push('--bind_ip', ip || '127.0.0.1');
     if (port) result.push('--port', port.toString());
     if (storageEngine) result.push('--storageEngine', storageEngine);
     if (dbPath) result.push('--dbpath', dbPath);
+    if (replSet) result.push('--replSet', replSet);
     result.push('--noauth');
 
     return result;
@@ -125,7 +127,9 @@ export default class MongodbInstance {
   _launchMongod(mongoBin: string): ChildProcess {
     const spawnOpts = this.opts.spawn || {};
     if (!spawnOpts.stdio) spawnOpts.stdio = 'pipe';
-    const childProcess = spawnChild(mongoBin, this.prepareCommandArgs(), spawnOpts);
+    const commandArgs = this.prepareCommandArgs();
+    console.log('commandArgs', commandArgs);
+    const childProcess = spawnChild(mongoBin, commandArgs, spawnOpts);
     childProcess.stderr.on('data', this.stderrHandler.bind(this));
     childProcess.stdout.on('data', this.stdoutHandler.bind(this));
     childProcess.on('close', this.closeHandler.bind(this));
